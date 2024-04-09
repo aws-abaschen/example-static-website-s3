@@ -30,6 +30,13 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run build
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: |
+          dist
+          !dist/**/*.md
   deploy:
     needs: [build]
     name: Upload to Amazon S3
@@ -45,7 +52,10 @@ jobs:
         aws-region: us-east-1
         role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_DEPLOY_ROLE }}
         role-session-name: GitHubActionS3Deploy
-
+    - name: Download math result for job 1
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
     - name: Copy files to the s3 website content bucket
       run:
         aws s3 sync dist s3://${{ secrets.AWS_S3_BUCKET_NAME }}
